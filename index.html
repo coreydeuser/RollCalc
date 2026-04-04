@@ -1,160 +1,313 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>RollCalc</title>
-
-<style>
-:root{
---bg:#0c0c0d;--panel:#151517;--panel2:#1c1c1f;--border:#2a2a2f;
---text:#f3f3f4;--muted:#9ea0a8;--accent:#d62f2f;--good:#1f9b50;
-}
-
-*{box-sizing:border-box;max-width:100%}
-
-html,body{
-margin:0;
-padding:0;
-background:var(--bg);
-color:var(--text);
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-overflow-x:hidden;
-}
-
-body{
-display:flex;
-justify-content:center;
-align-items:center;
-min-height:100vh;
-}
-
-.app{
-width:100%;
-max-width:420px;
-padding:16px;
-text-align:center;
-}
-
-.card{
-background:var(--panel);
-border:1px solid var(--border);
-border-radius:16px;
-padding:14px;
-}
-
-label{font-size:12px;color:var(--muted)}
-
-input{
-width:100%;
-height:48px;
-border-radius:12px;
-border:1px solid var(--border);
-background:var(--panel2);
-color:white;
-padding:0 12px;
-text-align:center;
-font-size:16px;
-margin-top:6px;
-display:block;
-}
-
-input[type="date"]{
--webkit-appearance:none;
-appearance:none;
-}
-
-.result{
-margin-top:12px;
-background:rgba(31,155,80,.15);
-border:1px solid rgba(31,155,80,.4);
-border-radius:12px;
-padding:12px;
-font-size:28px;
-font-weight:900;
-}
-
-button{
-width:100%;
-height:48px;
-border-radius:12px;
-border:none;
-margin-top:8px;
-font-weight:700;
-}
-
-.primary{background:var(--accent);color:white}
-.ghost{background:#222;color:white}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="RollCalc" />
+  <title>RollCalc</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <style>
+    :root{
+      --bg:#0c0c0d; --panel:#151517; --panel2:#1c1c1f; --border:#2a2a2f;
+      --text:#f3f3f4; --muted:#9ea0a8; --accent:#d62f2f; --good:#1f9b50;
+      --radius:18px; --shadow:0 10px 28px rgba(0,0,0,.28);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{
+      margin:0;padding:0;background:var(--bg);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+      min-height:100%;overflow-x:hidden;
+    }
+    body{
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+    .app{
+      width:100%;
+      max-width:400px;
+      padding:calc(12px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom));
+      text-align:center;
+    }
+    .top{margin-bottom:10px}
+    h1{
+      margin:0;
+      font-size:clamp(1.45rem, 5vw, 1.9rem);
+      line-height:1;
+    }
+    .sub{
+      margin:6px auto 0;
+      color:var(--muted);
+      font-size:.84rem;
+      line-height:1.25;
+      max-width:330px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+      padding:12px;
+      margin-bottom:10px;
+    }
+    .field{
+      margin-bottom:9px;
+      text-align:center;
+    }
+    label{
+      display:block;
+      font-size:.78rem;
+      font-weight:700;
+      color:var(--muted);
+      margin-bottom:5px;
+    }
+    input{
+      width:100%;
+      min-height:46px;
+      border-radius:14px;
+      border:1px solid var(--border);
+      background:var(--panel2);
+      color:var(--text);
+      padding:0 12px;
+      font-size:.98rem;
+      text-align:center;
+      outline:none;
+      display:block;
+    }
+    input:focus{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(214,47,47,.15);
+    }
+    input.capture-ready{
+      border-color:rgba(31,155,80,.65);
+      box-shadow:0 0 0 3px rgba(31,155,80,.16);
+    }
+    .seg{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:14px;
+      overflow:hidden;
+      margin-bottom:9px;
+    }
+    .seg button{
+      min-height:46px;
+      border:none;
+      background:transparent;
+      color:var(--muted);
+      font-weight:800;
+      font-size:.92rem;
+      cursor:pointer;
+    }
+    .seg button.active{
+      background:var(--accent);
+      color:#fff;
+    }
+    .capture-row{
+      display:flex;
+      gap:6px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin:4px 0 9px;
+    }
+    .capture-chip{
+      background:#17171a;
+      border:1px solid var(--border);
+      border-radius:999px;
+      padding:6px 9px;
+      font-size:.74rem;
+      color:var(--muted);
+      cursor:pointer;
+      line-height:1.1;
+    }
+    .capture-chip.active{
+      border-color:rgba(31,155,80,.65);
+      color:#d6ffd8;
+    }
+    .result{
+      margin-top:6px;
+      background:linear-gradient(180deg, rgba(31,155,80,.16), rgba(31,155,80,.08));
+      border:1px solid rgba(31,155,80,.38);
+      border-radius:16px;
+      padding:14px 10px;
+      text-align:center;
+    }
+    .k{
+      color:var(--muted);
+      font-size:.78rem;
+      margin-bottom:6px;
+    }
+    .v{
+      font-size:clamp(1.9rem, 9vw, 2.5rem);
+      font-weight:900;
+      line-height:1;
+    }
+    .save-note{
+      margin-top:7px;
+      min-height:1.05em;
+      color:#bbf4bf;
+      font-size:.82rem;
+    }
+    .note{
+      margin-top:7px;
+      color:var(--muted);
+      font-size:.76rem;
+      line-height:1.3;
+    }
+    .warn{
+      margin-top:5px;
+      min-height:1.05em;
+      color:#ffb1b1;
+      font-size:.76rem;
+      line-height:1.3;
+    }
+    .actions{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:8px;
+      margin-top:10px;
+    }
+    button{
+      min-height:46px;
+      border-radius:14px;
+      font-weight:800;
+      font-size:.94rem;
+      cursor:pointer;
+    }
+    .primary{background:var(--accent);color:#fff;border:none}
+    .secondary{background:#242428;color:var(--text);border:1px solid var(--border)}
+    .ghost{background:#17171a;color:var(--muted);border:1px solid var(--border)}
+    .toolbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:2px;
+    }
+    .tiny{
+      min-height:34px;
+      padding:0 10px;
+      font-size:.82rem;
+      border-radius:12px;
+    }
+    .history-item{
+      background:var(--panel2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:10px;
+      margin-top:9px;
+      text-align:center;
+    }
+    .name{
+      font-size:.95rem;
+      font-weight:900;
+      line-height:1.15;
+    }
+    .date{
+      font-size:.8rem;
+      color:var(--muted);
+      margin-top:4px;
+    }
+    .feet{
+      font-size:1rem;
+      font-weight:900;
+      color:#d6ffd8;
+      margin-top:6px;
+    }
+    .meta{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:5px;
+      margin-top:9px;
+      color:var(--muted);
+      font-size:.78rem;
+    }
+    .empty{
+      text-align:center;
+      color:var(--muted);
+      padding:16px 8px;
+      font-size:.85rem;
+    }
+  </style>
 </head>
-
 <body>
-<div class="app">
-<h2>RollCalc</h2>
+  <div class="app">
+    <div class="top">
+      <h1>RollCalc</h1>
+      <div class="sub">iPhone-tight layout with a plain date field so it stays inside the box.</div>
+    </div>
 
-<div class="card">
+    <div class="card">
+      <div class="field">
+        <label for="rollName">Roll Name</label>
+        <input id="rollName" placeholder="Example: 3M Gloss Black" />
+      </div>
 
-<label>Roll Name</label>
-<input id="name">
+      <div class="field">
+        <label for="rollDate">Date</label>
+        <input id="rollDate" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" />
+      </div>
 
-<label>Date</label>
-<input type="date" id="date">
+      <label>Thickness Format</label>
+      <div class="seg">
+        <button type="button" id="inchModeBtn" class="active">Inches</button>
+        <button type="button" id="milModeBtn">Mil</button>
+      </div>
 
-<label>OD</label>
-<input id="od">
+      <div class="field">
+        <label for="od">Outside Diameter (OD)</label>
+        <input id="od" inputmode="decimal" autocomplete="off" placeholder="Example: 5.75" />
+      </div>
 
-<label>ID</label>
-<input id="id">
+      <div class="field">
+        <label for="id">Inside Diameter (ID)</label>
+        <input id="id" inputmode="decimal" autocomplete="off" placeholder="Example: 3.00" />
+      </div>
 
-<label>Thickness</label>
-<input id="th">
+      <div class="field">
+        <label for="thickness">Material Thickness</label>
+        <input id="thickness" inputmode="decimal" autocomplete="off" placeholder="Example: 0.003 or 3.0 mil" />
+      </div>
 
-<div class="result" id="result">0.00 ft</div>
+      <div class="capture-row">
+        <div class="capture-chip" id="chip-od">1. OD</div>
+        <div class="capture-chip" id="chip-id">2. ID</div>
+        <div class="capture-chip" id="chip-thickness">3. Thickness</div>
+      </div>
 
-<button class="primary" onclick="save()">Save</button>
-<button class="ghost" onclick="clearAll()">Clear</button>
+      <div class="result">
+        <div class="k">Length Remaining</div>
+        <div class="v" id="feetResult">0.00 ft</div>
+      </div>
 
-</div>
+      <div class="save-note" id="saveNote"></div>
+      <div class="note" id="formulaNote">Using inches for OD, ID, and thickness.</div>
+      <div class="note" id="captureNote">Tap OD first. When the caliper types a value, the app will jump to the next field automatically.</div>
+      <div class="warn" id="warningText"></div>
 
-<div id="history"></div>
-</div>
+      <div class="actions">
+        <button class="primary" id="saveBtn" type="button">Save Roll</button>
+        <button class="secondary" id="exportBtn" type="button">Export CSV</button>
+        <button class="ghost" id="clearBtn" type="button">Clear</button>
+        <button class="ghost" id="installBtn" type="button">Install Help</button>
+      </div>
+    </div>
 
-<script>
-function num(v){return parseFloat(v)||0}
+    <div class="card">
+      <div class="toolbar">
+        <div style="font-weight:900;font-size:.98rem;">Saved Rolls</div>
+        <button class="ghost tiny" id="clearHistoryBtn" type="button">Clear All</button>
+      </div>
+      <div id="history"></div>
+    </div>
+  </div>
 
-function calc(){
-let od=num(od.value)
-let id=num(id.value)
-let t=num(th.value)
-if(!od||!t||od<=id)return 0
-return (Math.PI*(od*od-id*id))/(4*t)/12
-}
-
-function update(){
-result.innerText=calc().toFixed(2)+' ft'
-}
-
-function save(){
-let data=JSON.parse(localStorage.getItem('rolls')||'[]')
-data.push({name:name.value,feet:calc().toFixed(2)})
-localStorage.setItem('rolls',JSON.stringify(data))
-render()
-}
-
-function render(){
-let data=JSON.parse(localStorage.getItem('rolls')||'[]')
-history.innerHTML=data.map(d=>'<div>'+d.name+' - '+d.feet+' ft</div>').join('')
-}
-
-function clearAll(){
-localStorage.removeItem('rolls')
-render()
-}
-
-od.oninput=id.oninput=th.oninput=update
-
-render()
-</script>
-
+  <script src="app.js"></script>
 </body>
 </html>

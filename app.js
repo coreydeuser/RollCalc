@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'rollcalc_saved_rolls_v6';
+const STORAGE_KEY = 'rollcalc_saved_rolls_v7';
 
 document.addEventListener('DOMContentLoaded', () => {
   const els = {
@@ -67,9 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function showSaveNote(text) {
     els.saveNote.textContent = text || '';
     if (saveNoteTimer) clearTimeout(saveNoteTimer);
-    if (text) {
-      saveNoteTimer = setTimeout(() => { els.saveNote.textContent = ''; }, 1800);
-    }
+    if (text) saveNoteTimer = setTimeout(() => { els.saveNote.textContent = ''; }, 1800);
   }
 
   function setCaptureHighlight(activeField) {
@@ -94,10 +92,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function moveToNextField(current) {
     if (current === els.od) {
       els.id.focus();
-      if (els.id.select) els.id.select();
+      els.id.select?.();
     } else if (current === els.id) {
       els.thickness.focus();
-      if (els.thickness.select) els.thickness.select();
+      els.thickness.select?.();
     } else {
       current.blur();
       setCaptureHighlight(null);
@@ -110,9 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     autoAdvanceTimer = setTimeout(() => {
       const raw = String(field.value || '').trim();
       const parsed = parseMeasurement(raw);
-      if (raw && parsed > 0 && document.activeElement === field) {
-        moveToNextField(field);
-      }
+      if (raw && parsed > 0 && document.activeElement === field) moveToNextField(field);
     }, 220);
   }
 
@@ -136,11 +132,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadRolls() {
-    try {
-      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-    } catch (e) {
-      return [];
-    }
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+    catch { return []; }
   }
 
   function saveRolls(rolls) {
@@ -193,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveCurrentRoll() {
     const values = currentValues();
     const rollName = els.rollName.value.trim();
-    const rollDate = els.rollDate.value || todayLocalDate();
+    const rollDate = (els.rollDate.value || todayLocalDate()).trim();
 
     if (!rollName) {
       els.warningText.textContent = 'Enter a roll name.';
@@ -249,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const csv = [headers, ...rows]
       .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(','))
-      .join('\n');
+      .join('\\n');
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -317,9 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }, 0);
     });
     el.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === 'Tab') {
-        moveToNextField(el);
-      }
+      if (e.key === 'Enter' || e.key === 'Tab') moveToNextField(el);
     });
   });
 
