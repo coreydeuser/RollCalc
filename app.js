@@ -1,4 +1,4 @@
-const STORAGE_KEY='rollcalc_saved_rolls_v10';
+const STORAGE_KEY='rollcalc_saved_rolls_v11';
 
 document.addEventListener('DOMContentLoaded',()=>{
   const els={
@@ -17,13 +17,14 @@ document.addEventListener('DOMContentLoaded',()=>{
     warningText:document.getElementById('warningText'),
     saveNote:document.getElementById('saveNote'),
     captureNote:document.getElementById('captureNote'),
-    chipOd:document.getElementById('chip-od'),
+    chipODID:document.getElementById('chip-odid'),
     chipThickness:document.getElementById('chip-thickness')
   };
 
   let saveNoteTimer=null;
-  let armedField=els.od;
-  const measurementFields=[els.od,els.id,els.thickness];
+  let mode='odid';
+  let activeODIDField='od';
+  let odidStage=1;
 
   function todayLocalDate(){
     const now=new Date();
@@ -38,15 +39,15 @@ document.addEventListener('DOMContentLoaded',()=>{
     return Number.isFinite(num)?num:0;
   }
 
-  function formatTrimmed(value,decimals=4){
+  function formatTrimmed(value, decimals=4){
     const num=Number(value);
     if(!Number.isFinite(num)) return '';
     return num.toFixed(decimals).replace(/\.?0+$/,'');
   }
 
-  function calcLengthInches(od,id,thicknessInches){
-    if(!(od>0)||!(id>=0)||!(thicknessInches>0)||od<=id) return 0;
-    return (Math.PI*((od*od)-(id*id)))/(4*thicknessInches);
+  function calcLengthInches(od,id,thickness){
+    if(!(od>0)||!(id>=0)||!(thickness>0)||od<=id) return 0;
+    return (Math.PI*((od*od)-(id*id)))/(4*thickness);
   }
 
   function currentValues(){
@@ -64,22 +65,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     if(text) saveNoteTimer=setTimeout(()=>{els.saveNote.textContent='';},1800);
   }
 
-  function setCaptureHighlight(activeField){
-    els.od.classList.toggle('capture-ready',activeField===els.od||activeField===els.id);
-    els.id.classList.toggle('capture-ready',activeField===els.od||activeField===els.id);
-    els.thickness.classList.toggle('capture-ready',activeField===els.thickness);
-    els.chipOd.classList.toggle('active',activeField===els.od||activeField===els.id);
-    els.chipThickness.classList.toggle('active',activeField===els.thickness);
-  }
-
-  function updateCaptureNote(){
-    if(armedField===els.thickness){
-      els.captureNote.textContent='Thickness is armed. New input replaces the value. Enter finishes.';
-    } else {
-      els.captureNote.textContent='OD / ID auto-detect is armed. New input replaces the selected value, and Enter moves to Thickness after the OD/ID pair is set.';
-    }
-  }
-
   function updateResults(){
     const values=currentValues();
     els.feetResult.textContent=`${values.feet.toFixed(2)} ft`;
@@ -92,71 +77,79 @@ document.addEventListener('DOMContentLoaded',()=>{
     els.warningText.textContent=msg;
   }
 
-  function setODIDFromValues(a,b){
-    const nums=[parseMeasurement(a),parseMeasurement(b)].filter(v=>v>0);
-    if(!nums.length){
-      els.od.value=''; els.id.value=''; return;
-    }
-    if(nums.length===1){
-      els.od.value=formatTrimmed(nums[0]); els.id.value=''; return;
-    }
-    const od=Math.max(nums[0],nums[1]);
-    const id=Math.min(nums[0],nums[1]);
-    els.od.value=formatTrimmed(od);
-    els.id.value=formatTrimmed(id);
+  function setCaptureState(){
+    els.od.classList.toggle('capture-ready',mode==='odid' && activeODIDField==='od');
+    els.id.classList.toggle('capture-ready',mode==='odid' && activeODIDField==='id');
+    els.thickness.classList.toggle('capture-ready',mode==='thickness');
+    els.chipODID.classList.toggle('active',mode==='odid');
+    els.chipThickness.classList.toggle('active',mode==='thickness');
   }
 
-  function focusThickness(){
-    armedField=els.thickness;
-    els.thickness.focus();
-    if(els.thickness.select) els.thickness.select();
-    setCaptureHighlight(armedField);
-    updateCaptureNote();
-  }
-
-  function focusODID(){
-    armedField=els.od;
-    els.od.focus();
-    if(els.od.select) els.od.select();
-    setCaptureHighlight(armedField);
-    updateCaptureNote();
-  }
-
-  function handleODIDInput(targetEl,newRawValue){
-    const newVal=parseMeasurement(newRawValue);
-    if(!(newVal>0)){
-      if(targetEl===els.od) els.od.value='';
-      if(targetEl===els.id) els.id.value='';
-      updateResults();
-      return;
-    }
-    const otherEl=targetEl===els.od?els.id:els.od;
-    const otherVal=parseMeasurement(otherEl.value);
-
-    if(otherVal>0){
-      setODIDFromValues(newVal,otherVal);
+  function updateCaptureNote(){
+    if(mode==='thickness'){
+      els.captureNote.textContent='Thickness is armed. New input replaces the value. Enter finishes.';
+    } else if(odidStage===1){
+      els.captureNote.textContent=`${activeODIDField.toUpperCase()} is armed. First Enter moves to the other OD/ID box.`;
     } else {
-      els.od.value=formatTrimmed(newVal);
-      els.id.value='';
+      els.captureNote.textContent=`${activeODIDField.toUpperCase()} is armed. Second Enter sorts larger to OD and smaller to ID, then moves to Thickness.`;
+    }
+  }
+
+  function armODID(which){
+    mode='odid';
+    activeODIDField=which;
+    const active=which==='od'?els.od:els.id;
+    active.focus();
+    active.select?.();
+    setCaptureState();
+    updateCaptureNote();
+  }
+
+  function armThickness(){
+    mode='thickness';
+    els.thickness.focus();
+    els.thickness.select?.();
+    setCaptureState();
+    updateCaptureNote();
+  }
+
+  function sortODID(){
+    const a=parseMeasurement(els.od.value);
+    const b=parseMeasurement(els.id.value);
+    if(a>0 && b>0){
+      const od=Math.max(a,b);
+      const id=Math.min(a,b);
+      els.od.value=formatTrimmed(od);
+      els.id.value=formatTrimmed(id);
     }
     updateResults();
   }
 
-  function setupODIDField(el){
+  function setupReplaceField(el, fieldName){
     let replaceNext=false;
 
     el.addEventListener('focus',()=>{
-      armedField=el;
-      setCaptureHighlight(armedField);
-      updateCaptureNote();
       replaceNext=true;
-      setTimeout(()=>{ if(el.select) el.select(); },0);
+      if(fieldName==='thickness'){
+        mode='thickness';
+      } else {
+        mode='odid';
+        activeODIDField=fieldName;
+      }
+      setCaptureState();
+      updateCaptureNote();
+      setTimeout(()=>el.select?.(),0);
     });
 
     el.addEventListener('pointerdown',()=>{
-      armedField=el;
       replaceNext=true;
-      setTimeout(()=>{ if(document.activeElement===el && el.select) el.select(); },0);
+      if(fieldName==='thickness'){
+        mode='thickness';
+      } else {
+        mode='odid';
+        activeODIDField=fieldName;
+      }
+      setTimeout(()=>{ if(document.activeElement===el) el.select?.(); },0);
     });
 
     el.addEventListener('keydown',e=>{
@@ -164,50 +157,29 @@ document.addEventListener('DOMContentLoaded',()=>{
         el.value='';
         replaceNext=false;
       }
-      if(e.key==='Enter'){
-        e.preventDefault();
-        handleODIDInput(el,el.value);
-        focusThickness();
-        replaceNext=true;
-      }
-    });
 
-    el.addEventListener('input',()=>{
-      handleODIDInput(el,el.value);
-      replaceNext=false;
-    });
-
-    el.addEventListener('change',()=>handleODIDInput(el,el.value));
-  }
-
-  function setupThicknessField(el){
-    let replaceNext=false;
-
-    el.addEventListener('focus',()=>{
-      armedField=el;
-      setCaptureHighlight(armedField);
-      updateCaptureNote();
-      replaceNext=true;
-      setTimeout(()=>{ if(el.select) el.select(); },0);
-    });
-
-    el.addEventListener('pointerdown',()=>{
-      armedField=el;
-      replaceNext=true;
-      setTimeout(()=>{ if(document.activeElement===el && el.select) el.select(); },0);
-    });
-
-    el.addEventListener('keydown',e=>{
-      if(replaceNext && e.key.length===1){
-        el.value='';
-        replaceNext=false;
-      }
       if(e.key==='Enter'){
         e.preventDefault();
         updateResults();
-        el.blur();
-        setCaptureHighlight(null);
-        updateCaptureNote();
+
+        if(fieldName==='thickness'){
+          el.blur();
+          mode='odid';
+          setCaptureState();
+          updateCaptureNote();
+          replaceNext=true;
+          return;
+        }
+
+        if(odidStage===1){
+          odidStage=2;
+          activeODIDField=(fieldName==='od') ? 'id' : 'od';
+          armODID(activeODIDField);
+        } else {
+          sortODID();
+          odidStage=1;
+          armThickness();
+        }
         replaceNext=true;
       }
     });
@@ -249,9 +221,7 @@ document.addEventListener('DOMContentLoaded',()=>{
           <div>ID: ${Number(roll.id).toFixed(3)} in</div>
           <div>Thickness: ${Number(roll.thickness).toFixed(4)} in</div>
         </div>
-        <div style="margin-top:10px;">
-          <button class="ghost tiny" type="button" data-delete="${roll.createdAt}">Delete</button>
-        </div>
+        <div style="margin-top:10px;"><button class="ghost tiny" type="button" data-delete="${roll.createdAt}">Delete</button></div>
       </div>`).join('');
 
     els.history.querySelectorAll('[data-delete]').forEach(btn=>{
@@ -327,8 +297,9 @@ document.addEventListener('DOMContentLoaded',()=>{
     els.id.value='';
     els.thickness.value='';
     els.warningText.textContent='';
+    odidStage=1;
     updateResults();
-    focusODID();
+    armODID('od');
     showSaveNote('');
   }
 
@@ -343,26 +314,24 @@ document.addEventListener('DOMContentLoaded',()=>{
     showSaveNote('Open in Safari, then Share → Add to Home Screen');
   }
 
-  setupODIDField(els.od);
-  setupODIDField(els.id);
-  setupThicknessField(els.thickness);
+  setupReplaceField(els.od,'od');
+  setupReplaceField(els.id,'id');
+  setupReplaceField(els.thickness,'thickness');
 
   els.saveBtn.addEventListener('click',saveCurrentRoll);
   els.exportBtn.addEventListener('click',exportCSV);
   els.clearBtn.addEventListener('click',clearInputs);
   els.installBtn.addEventListener('click',showInstallHelp);
   els.clearHistoryBtn.addEventListener('click',clearAllHistory);
-  els.chipOd.addEventListener('click',focusODID);
-  els.chipThickness.addEventListener('click',focusThickness);
+  els.chipODID.addEventListener('click',()=>{odidStage=1;armODID('od');});
+  els.chipThickness.addEventListener('click',()=>{odidStage=1;armThickness();});
 
   els.rollDate.value=todayLocalDate();
   renderHistory();
   updateResults();
-  focusODID();
+  armODID('od');
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>{
-      navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
-    });
+    window.addEventListener('load',()=>{navigator.serviceWorker.register('./service-worker.js').catch(()=>{});});
   }
 });

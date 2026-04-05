@@ -11,7 +11,7 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.png" />
   <style>
-    :root{--bg:#0c0c0d;--panel:#151517;--panel2:#1c1c1f;--border:#2a2a2f;--text:#f3f3f4;--muted:#9ea0a8;--accent:#d62f2f;--good:#1f9b50;--radius:18px;--shadow:0 10px 28px rgba(0,0,0,.28)}
+    :root{--bg:#0c0c0d;--panel:#151517;--panel2:#1c1c1f;--border:#2a2a2f;--text:#f3f3f4;--muted:#9ea0a8;--accent:#d62f2f;--radius:18px;--shadow:0 10px 28px rgba(0,0,0,.28)}
     *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
     html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;min-height:100%;overflow-x:hidden}
     body{min-height:100vh;display:flex;justify-content:center;align-items:center}
@@ -22,14 +22,13 @@
     .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px;margin-bottom:12px}
     .field{margin-bottom:10px;text-align:center}
     label{display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:6px}
-    input{width:100%;min-height:50px;height:50px;border-radius:14px;border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:0 13px;font-size:1rem;text-align:center;outline:none;display:block;line-height:50px}
+    input{width:100%;min-height:50px;height:50px;border-radius:14px;border:1px solid var(--border);background:var(--panel2);color:var(--text);padding:0 13px;font-size:1rem;text-align:center;outline:none;display:block}
     input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(214,47,47,.15)}
     input.capture-ready{border-color:rgba(31,155,80,.65);box-shadow:0 0 0 3px rgba(31,155,80,.16)}
     input[type="date"]{-webkit-appearance:none;appearance:none;max-width:100%;overflow:hidden;padding-top:0;padding-bottom:0;line-height:normal;text-align:center}
     input[type="date"]::-webkit-date-and-time-value{text-align:center;min-height:50px;display:flex;align-items:center;justify-content:center}
     input[type="date"]::-webkit-datetime-edit{display:flex;align-items:center;justify-content:center;width:100%;height:100%;padding:0}
     input[type="date"]::-webkit-datetime-edit-fields-wrapper{display:flex;align-items:center;justify-content:center;height:100%}
-    input[type="date"]::-webkit-calendar-picker-indicator{opacity:.85;margin-right:2px}
     .capture-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:4px 0 10px}
     .capture-chip{background:#17171a;border:1px solid var(--border);border-radius:999px;padding:5px 9px;font-size:.74rem;color:var(--muted);cursor:pointer;line-height:1.1}
     .capture-chip.active{border-color:rgba(31,155,80,.65);color:#d6ffd8}
@@ -56,28 +55,23 @@
   <div class="app">
     <div class="top">
       <h1>RollCalc</h1>
-      <div class="sub">Inches only, OD/ID auto-detect, replace-on-entry fields, and Enter-based auto-jump.</div>
+      <div class="sub">Inches only, OD/ID pair capture, replace-on-entry fields, and Enter-based auto-jump.</div>
     </div>
-
     <div class="card">
       <div class="field"><label for="rollName">Roll Name</label><input id="rollName" placeholder="Example: 3M Gloss Black" /></div>
       <div class="field"><label for="rollDate">Date</label><input id="rollDate" type="date" /></div>
       <div class="field"><label for="od">Outside Diameter (OD)</label><input id="od" inputmode="decimal" autocomplete="off" placeholder="Example: 5.75" /></div>
       <div class="field"><label for="id">Inside Diameter (ID)</label><input id="id" inputmode="decimal" autocomplete="off" placeholder="Example: 3.00" /></div>
       <div class="field"><label for="thickness">Material Thickness (inches)</label><input id="thickness" inputmode="decimal" autocomplete="off" placeholder="Example: 0.003" /></div>
-
       <div class="capture-row">
-        <div class="capture-chip" id="chip-od">OD / ID</div>
+        <div class="capture-chip" id="chip-odid">OD / ID Pair</div>
         <div class="capture-chip" id="chip-thickness">Thickness</div>
       </div>
-
       <div class="result"><div class="k">Length Remaining</div><div class="v" id="feetResult">0.00 ft</div></div>
-
       <div class="save-note" id="saveNote"></div>
-      <div class="note">All measurements are in inches. OD/ID auto-detect keeps the larger value in OD and smaller in ID.</div>
-      <div class="note" id="captureNote">Tap OD or ID and the next caliper input will replace that value. Pressing Enter moves through OD/ID to Thickness.</div>
+      <div class="note">All measurements are in inches. First OD/ID reading fills the active box, second reading sorts larger to OD and smaller to ID.</div>
+      <div class="note" id="captureNote">Tap OD or ID. First Enter moves to the other OD/ID box. Second Enter sorts OD and ID, then moves to Thickness.</div>
       <div class="warn" id="warningText"></div>
-
       <div class="actions">
         <button class="primary" id="saveBtn" type="button">Save Roll</button>
         <button class="secondary" id="exportBtn" type="button">Export CSV</button>
@@ -85,7 +79,6 @@
         <button class="ghost" id="installBtn" type="button">Install Help</button>
       </div>
     </div>
-
     <div class="card">
       <div class="toolbar">
         <div style="font-weight:900;font-size:1.05rem;">Saved Rolls</div>
@@ -93,8 +86,7 @@
       </div>
       <div id="history"></div>
     </div>
-
-    <div class="footer">CDi v2.0</div>
+    <div class="footer">CDi v2.1</div>
   </div>
   <script src="app.js"></script>
 </body>
