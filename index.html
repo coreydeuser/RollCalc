@@ -50,6 +50,7 @@
     input{
       width:100%;
       min-height:50px;
+      height:50px;
       border-radius:14px;
       border:1px solid var(--border);
       background:var(--panel2);
@@ -59,6 +60,7 @@
       text-align:center;
       outline:none;
       display:block;
+      line-height:50px;
     }
     input:focus{
       border-color:var(--accent);
@@ -73,7 +75,38 @@
       appearance:none;
       max-width:100%;
       overflow:hidden;
+      padding-top:0;
+      padding-bottom:0;
+      line-height:normal;
+      text-align:center;
     }
+    /* iPhone date text vertical alignment fix */
+    input[type="date"]::-webkit-date-and-time-value{
+      text-align:center;
+      min-height:50px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    input[type="date"]::-webkit-datetime-edit{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      height:100%;
+      padding:0;
+    }
+    input[type="date"]::-webkit-datetime-edit-fields-wrapper{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100%;
+    }
+    input[type="date"]::-webkit-calendar-picker-indicator{
+      opacity:.85;
+      margin-right:2px;
+    }
+
     .capture-row{
       display:flex;
       gap:6px;
@@ -157,13 +190,24 @@
       font-size:.83rem;
     }
     .empty{text-align:center;color:var(--muted);padding:18px 8px}
-    @media (max-width:560px){.actions{grid-template-columns:1fr}}
+    .footer{
+      color:var(--muted);
+      font-size:.78rem;
+      text-align:center;
+      margin-top:10px;
+      padding-bottom:2px;
+      letter-spacing:.2px;
+    }
+    @media (max-width:560px){
+      .actions{grid-template-columns:1fr}
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <div class="top">
       <h1>RollCalc</h1>
+      <div class="sub">Inches only, live calculation, replace-on-entry fields, and Enter-based auto-jump.</div>
     </div>
 
     <div class="card">
@@ -205,6 +249,7 @@
 
       <div class="save-note" id="saveNote"></div>
       <div class="note">All measurements are in inches.</div>
+      <div class="note" id="captureNote">Tap a field and the next caliper input will replace the current value. Pressing Enter moves to the next box.</div>
       <div class="warn" id="warningText"></div>
 
       <div class="actions">
@@ -222,8 +267,10 @@
       </div>
       <div id="history"></div>
     </div>
+
+    <div class="footer">CDi v1.9</div>
   </div>
-      <div class="note">V1.5.</div>
+
   <script src="app.js"></script>
 </body>
 </html>

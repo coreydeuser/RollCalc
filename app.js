@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'rollcalc_saved_rolls_v8';
+const STORAGE_KEY = 'rollcalc_saved_rolls_v9';
 
 document.addEventListener('DOMContentLoaded', () => {
   const els = {
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   let saveNoteTimer = null;
-  const captureFields = [els.od, els.id, els.thickness];
+  const measurementFields = [els.od, els.id, els.thickness];
 
   function todayLocalDate() {
     const now = new Date();
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setCaptureHighlight(activeField) {
-    captureFields.forEach(f => f.classList.toggle('capture-ready', f === activeField));
+    measurementFields.forEach(f => f.classList.toggle('capture-ready', f === activeField));
     els.chipOd.classList.toggle('active', activeField === els.od);
     els.chipId.classList.toggle('active', activeField === els.id);
     els.chipThickness.classList.toggle('active', activeField === els.thickness);
@@ -67,13 +67,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateCaptureNote() {
     if (document.activeElement === els.od) {
-      els.captureNote.textContent = 'OD is armed. The next caliper input will replace this value.';
+      els.captureNote.textContent = 'OD is armed. New input replaces the value. Enter moves to ID.';
     } else if (document.activeElement === els.id) {
-      els.captureNote.textContent = 'ID is armed. The next caliper input will replace this value.';
+      els.captureNote.textContent = 'ID is armed. New input replaces the value. Enter moves to Thickness.';
     } else if (document.activeElement === els.thickness) {
-      els.captureNote.textContent = 'Thickness is armed. The next caliper input will replace this value.';
+      els.captureNote.textContent = 'Thickness is armed. New input replaces the value. Enter finishes.';
     } else {
-      els.captureNote.textContent = 'Tap a field and the next caliper input will replace the current value.';
+      els.captureNote.textContent = 'Tap a field and the next caliper input will replace the current value. Pressing Enter moves to the next box.';
+    }
+  }
+
+  function focusNextField(currentField) {
+    const index = measurementFields.indexOf(currentField);
+    const nextField = measurementFields[index + 1];
+    if (nextField) {
+      nextField.focus();
+      if (nextField.select) nextField.select();
+    } else {
+      currentField.blur();
+      setCaptureHighlight(null);
+      updateCaptureNote();
     }
   }
 
@@ -85,13 +98,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     el.addEventListener('pointerdown', () => {
-      setTimeout(() => { if (el.select) el.select(); }, 0);
+      setTimeout(() => { if (document.activeElement === el && el.select) el.select(); }, 0);
     });
 
     el.addEventListener('keydown', e => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        el.blur();
+        updateResults();
+        focusNextField(el);
       }
     });
 
@@ -218,7 +232,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const csv = [headers, ...rows]
       .map(row => row.map(value => `"${String(value).replaceAll('"', '""')}"`).join(','))
-      .join('\\n');
+      .join('\n');
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -258,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showSaveNote('Open in Safari, then Share → Add to Home Screen');
   }
 
-  [els.od, els.id, els.thickness].forEach(armReplaceOnFocus);
+  measurementFields.forEach(armReplaceOnFocus);
 
   els.saveBtn.addEventListener('click', saveCurrentRoll);
   els.exportBtn.addEventListener('click', exportCSV);
@@ -281,16 +295,4 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('./service-worker.js').catch(() => {});
     });
   }
-[els.od, els.id, els.thickness].forEach((el, index, arr) => {
-  el.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') {
-      e.preventDefault();
-
-      const next = arr[index + 1];
-      if (next) {
-        next.focus();
-        next.select?.();
-      }
-    }
-  });
 });
