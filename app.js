@@ -281,4 +281,16 @@ document.addEventListener('DOMContentLoaded', () => {
       navigator.serviceWorker.register('./service-worker.js').catch(() => {});
     });
   }
+[els.od, els.id, els.thickness].forEach((el, index, arr) => {
+  el.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+
+      const next = arr[index + 1];
+      if (next) {
+        next.focus();
+        next.select?.();
+      }
+    }
+  });
 });
