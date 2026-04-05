@@ -90,8 +90,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-function armReplaceOnFocus(el) {
+function setupMeasurementField(el, index) {
   let replaceNext = false;
+
+  el.addEventListener('focus', () => {
+    setCaptureHighlight(el);
+    updateCaptureNote();
+    replaceNext = true;
+  });
+
+  el.addEventListener('pointerdown', () => {
+    replaceNext = true;
+  });
+
+  el.addEventListener('keydown', (e) => {
+    // 🔥 FIX 1: FORCE REPLACE
+    if (replaceNext && e.key.length === 1) {
+      el.value = '';
+      replaceNext = false;
+    }
+
+    // 🔥 FIX 2: ENTER = NEXT BOX
+    if (e.key === 'Enter') {
+      e.preventDefault();
+
+      updateResults(); // ensure calculation happens
+
+      const next = measurementFields[index + 1];
+      if (next) {
+        next.focus();
+        next.select?.();
+      } else {
+        el.blur();
+      }
+
+      replaceNext = true;
+    }
+  });
+
+  // 🔥 FIX 3: ALWAYS CALCULATE
+  el.addEventListener('input', updateResults);
+  el.addEventListener('change', updateResults);
+}
 
   el.addEventListener('focus', () => {
     setCaptureHighlight(el);
