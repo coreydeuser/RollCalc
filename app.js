@@ -326,7 +326,9 @@ function setupMeasurementField(el, index) {
     showSaveNote('Open in Safari, then Share → Add to Home Screen');
   }
 
-  measurementFields.forEach(armReplaceOnFocus);
+measurementFields.forEach((el, i) => {
+  setupMeasurementField(el, i);
+});
 
   els.saveBtn.addEventListener('click', saveCurrentRoll);
   els.exportBtn.addEventListener('click', exportCSV);
