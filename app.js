@@ -90,24 +90,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function armReplaceOnFocus(el) {
-    el.addEventListener('focus', () => {
-      setCaptureHighlight(el);
-      updateCaptureNote();
-      setTimeout(() => { if (el.select) el.select(); }, 0);
-    });
+function armReplaceOnFocus(el) {
+  let replaceNext = false;
 
-    el.addEventListener('pointerdown', () => {
-      setTimeout(() => { if (document.activeElement === el && el.select) el.select(); }, 0);
-    });
+  el.addEventListener('focus', () => {
+    setCaptureHighlight(el);
+    updateCaptureNote();
+    replaceNext = true;
+  });
 
-    el.addEventListener('keydown', e => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        updateResults();
-        focusNextField(el);
-      }
-    });
+  el.addEventListener('pointerdown', () => {
+    replaceNext = true;
+  });
+
+  // THIS is the important part
+  el.addEventListener('keydown', (e) => {
+    // if first key comes in → clear field
+    if (replaceNext && e.key.length === 1) {
+      el.value = '';
+      replaceNext = false;
+    }
+
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      updateResults();
+      focusNextField(el);
+      replaceNext = true; // prep next field
+    }
+  });
+
+  el.addEventListener('input', updateResults);
+  el.addEventListener('change', updateResults);
+}
 
     el.addEventListener('input', updateResults);
     el.addEventListener('change', updateResults);
