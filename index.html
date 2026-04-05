@@ -26,55 +26,36 @@
       min-height:100vh;
       display:flex;
       justify-content:center;
-      align-items:flex-start;
+      align-items:center;
     }
     .app{
       width:100%;
-      max-width:400px;
-      padding:calc(12px + env(safe-area-inset-top)) 10px calc(18px + env(safe-area-inset-bottom));
+      max-width:440px;
+      padding:calc(14px + env(safe-area-inset-top)) 12px calc(20px + env(safe-area-inset-bottom));
       text-align:center;
     }
-    .top{margin-bottom:10px}
-    h1{
-      margin:0;
-      font-size:clamp(1.45rem, 5vw, 1.9rem);
-      line-height:1;
-    }
-    .sub{
-      margin:6px auto 0;
-      color:var(--muted);
-      font-size:.84rem;
-      line-height:1.25;
-      max-width:330px;
-    }
+    .top{margin-bottom:12px}
+    h1{margin:0;font-size:clamp(1.55rem, 5vw, 2rem);line-height:1}
+    .sub{margin:6px auto 0;color:var(--muted);font-size:.9rem;line-height:1.3;max-width:360px}
     .card{
       background:var(--panel);
       border:1px solid var(--border);
-      border-radius:16px;
+      border-radius:var(--radius);
       box-shadow:var(--shadow);
-      padding:12px;
-      margin-bottom:10px;
+      padding:14px;
+      margin-bottom:12px;
     }
-    .field{
-      margin-bottom:9px;
-      text-align:center;
-    }
-    label{
-      display:block;
-      font-size:.78rem;
-      font-weight:700;
-      color:var(--muted);
-      margin-bottom:5px;
-    }
+    .field{margin-bottom:10px;text-align:center}
+    label{display:block;font-size:.82rem;font-weight:700;color:var(--muted);margin-bottom:6px}
     input{
       width:100%;
-      min-height:46px;
+      min-height:50px;
       border-radius:14px;
       border:1px solid var(--border);
       background:var(--panel2);
       color:var(--text);
-      padding:0 12px;
-      font-size:.98rem;
+      padding:0 13px;
+      font-size:1rem;
       text-align:center;
       outline:none;
       display:block;
@@ -87,40 +68,24 @@
       border-color:rgba(31,155,80,.65);
       box-shadow:0 0 0 3px rgba(31,155,80,.16);
     }
-    .seg{
-      display:grid;
-      grid-template-columns:1fr 1fr;
-      background:var(--panel2);
-      border:1px solid var(--border);
-      border-radius:14px;
+    input[type="date"]{
+      -webkit-appearance:none;
+      appearance:none;
+      max-width:100%;
       overflow:hidden;
-      margin-bottom:9px;
-    }
-    .seg button{
-      min-height:46px;
-      border:none;
-      background:transparent;
-      color:var(--muted);
-      font-weight:800;
-      font-size:.92rem;
-      cursor:pointer;
-    }
-    .seg button.active{
-      background:var(--accent);
-      color:#fff;
     }
     .capture-row{
       display:flex;
       gap:6px;
       justify-content:center;
       flex-wrap:wrap;
-      margin:4px 0 9px;
+      margin:4px 0 10px;
     }
     .capture-chip{
       background:#17171a;
       border:1px solid var(--border);
       border-radius:999px;
-      padding:6px 9px;
+      padding:5px 9px;
       font-size:.74rem;
       color:var(--muted);
       cursor:pointer;
@@ -135,49 +100,25 @@
       background:linear-gradient(180deg, rgba(31,155,80,.16), rgba(31,155,80,.08));
       border:1px solid rgba(31,155,80,.38);
       border-radius:16px;
-      padding:14px 10px;
+      padding:16px 12px;
       text-align:center;
     }
-    .k{
-      color:var(--muted);
-      font-size:.78rem;
-      margin-bottom:6px;
-    }
-    .v{
-      font-size:clamp(1.9rem, 9vw, 2.5rem);
-      font-weight:900;
-      line-height:1;
-    }
-    .save-note{
-      margin-top:7px;
-      min-height:1.05em;
-      color:#bbf4bf;
-      font-size:.82rem;
-    }
-    .note{
-      margin-top:7px;
-      color:var(--muted);
-      font-size:.76rem;
-      line-height:1.3;
-    }
-    .warn{
-      margin-top:5px;
-      min-height:1.05em;
-      color:#ffb1b1;
-      font-size:.76rem;
-      line-height:1.3;
-    }
+    .k{color:var(--muted);font-size:.82rem;margin-bottom:6px}
+    .v{font-size:clamp(1.9rem, 8vw, 2.7rem);font-weight:900;line-height:1}
+    .save-note{margin-top:8px;min-height:1.1em;color:#bbf4bf;font-size:.86rem}
+    .note{margin-top:8px;color:var(--muted);font-size:.82rem;line-height:1.35}
+    .warn{margin-top:6px;min-height:1.1em;color:#ffb1b1;font-size:.82rem;line-height:1.35}
     .actions{
       display:grid;
-      grid-template-columns:1fr;
-      gap:8px;
-      margin-top:10px;
+      grid-template-columns:1fr 1fr;
+      gap:9px;
+      margin-top:12px;
     }
     button{
-      min-height:46px;
+      min-height:48px;
       border-radius:14px;
       font-weight:800;
-      font-size:.94rem;
+      font-size:.96rem;
       cursor:pointer;
     }
     .primary{background:var(--accent);color:#fff;border:none}
@@ -187,59 +128,43 @@
       display:flex;
       justify-content:space-between;
       align-items:center;
-      gap:8px;
+      gap:10px;
       margin-bottom:2px;
     }
     .tiny{
-      min-height:34px;
-      padding:0 10px;
-      font-size:.82rem;
+      min-height:36px;
+      padding:0 11px;
+      font-size:.88rem;
       border-radius:12px;
     }
     .history-item{
       background:var(--panel2);
       border:1px solid var(--border);
       border-radius:16px;
-      padding:10px;
-      margin-top:9px;
+      padding:11px;
+      margin-top:10px;
       text-align:center;
     }
-    .name{
-      font-size:.95rem;
-      font-weight:900;
-      line-height:1.15;
-    }
-    .date{
-      font-size:.8rem;
-      color:var(--muted);
-      margin-top:4px;
-    }
-    .feet{
-      font-size:1rem;
-      font-weight:900;
-      color:#d6ffd8;
-      margin-top:6px;
-    }
+    .name{font-size:1rem;font-weight:900;line-height:1.15}
+    .date{font-size:.84rem;color:var(--muted);margin-top:4px}
+    .feet{font-size:1.08rem;font-weight:900;color:#d6ffd8;margin-top:7px}
     .meta{
       display:grid;
       grid-template-columns:1fr;
-      gap:5px;
-      margin-top:9px;
+      gap:6px;
+      margin-top:10px;
       color:var(--muted);
-      font-size:.78rem;
+      font-size:.83rem;
     }
-    .empty{
-      text-align:center;
-      color:var(--muted);
-      padding:16px 8px;
-      font-size:.85rem;
-    }
+    .empty{text-align:center;color:var(--muted);padding:18px 8px}
+    @media (max-width:560px){.actions{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
   <div class="app">
     <div class="top">
       <h1>RollCalc</h1>
+      <div class="sub">Inches only, live calculation, and tap-to-replace fields for quick caliper entry.</div>
     </div>
 
     <div class="card">
@@ -250,12 +175,7 @@
 
       <div class="field">
         <label for="rollDate">Date</label>
-        <input id="rollDate" type="text" inputmode="numeric" placeholder="YYYY-MM-DD" />
-      </div>
-
-      <label>Thickness Format</label>
-      <div class="seg">
-        <button type="button" id="inchModeBtn" class="active">Inches</button>
+        <input id="rollDate" type="date" />
       </div>
 
       <div class="field">
@@ -269,14 +189,14 @@
       </div>
 
       <div class="field">
-        <label for="thickness">Material Thickness</label>
-        <input id="thickness" inputmode="decimal" autocomplete="off" placeholder="Example: 0.003 or 3.0 mil" />
+        <label for="thickness">Material Thickness (inches)</label>
+        <input id="thickness" inputmode="decimal" autocomplete="off" placeholder="Example: 0.003" />
       </div>
 
       <div class="capture-row">
-        <div class="capture-chip" id="chip-od">1. OD</div>
-        <div class="capture-chip" id="chip-id">2. ID</div>
-        <div class="capture-chip" id="chip-thickness">3. Thickness</div>
+        <div class="capture-chip" id="chip-od">OD</div>
+        <div class="capture-chip" id="chip-id">ID</div>
+        <div class="capture-chip" id="chip-thickness">Thickness</div>
       </div>
 
       <div class="result">
@@ -285,7 +205,8 @@
       </div>
 
       <div class="save-note" id="saveNote"></div>
-      <div class="note" id="formulaNote">Using inches for OD, ID, and thickness.</div>
+      <div class="note">All measurements are in inches.</div>
+      <div class="note" id="captureNote">Tap a field and the next caliper input will replace the current value.</div>
       <div class="warn" id="warningText"></div>
 
       <div class="actions">
@@ -298,7 +219,7 @@
 
     <div class="card">
       <div class="toolbar">
-        <div style="font-weight:900;font-size:.98rem;">Saved Rolls</div>
+        <div style="font-weight:900;font-size:1.05rem;">Saved Rolls</div>
         <button class="ghost tiny" id="clearHistoryBtn" type="button">Clear All</button>
       </div>
       <div id="history"></div>

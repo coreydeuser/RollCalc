@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'rollcalc_saved_rolls_v7';
+const STORAGE_KEY = 'rollcalc_saved_rolls_v8';
 
 document.addEventListener('DOMContentLoaded', () => {
   const els = {
@@ -14,9 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
     installBtn: document.getElementById('installBtn'),
     history: document.getElementById('history'),
     clearHistoryBtn: document.getElementById('clearHistoryBtn'),
-    inchModeBtn: document.getElementById('inchModeBtn'),
-    milModeBtn: document.getElementById('milModeBtn'),
-    formulaNote: document.getElementById('formulaNote'),
     warningText: document.getElementById('warningText'),
     saveNote: document.getElementById('saveNote'),
     captureNote: document.getElementById('captureNote'),
@@ -25,9 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
     chipThickness: document.getElementById('chip-thickness')
   };
 
-  let thicknessMode = 'inch';
   let saveNoteTimer = null;
-  let autoAdvanceTimer = null;
   const captureFields = [els.od, els.id, els.thickness];
 
   function todayLocalDate() {
@@ -43,12 +38,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return Number.isFinite(num) ? num : 0;
   }
 
-  function getThicknessInches(rawValue) {
-    const val = parseMeasurement(rawValue);
-    if (!val) return 0;
-    return thicknessMode === 'mil' ? val / 1000 : val;
-  }
-
   function calcLengthInches(od, id, thicknessInches) {
     if (!(od > 0) || !(id >= 0) || !(thicknessInches > 0) || od <= id) return 0;
     return (Math.PI * ((od * od) - (id * id))) / (4 * thicknessInches);
@@ -57,11 +46,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function currentValues() {
     const od = parseMeasurement(els.od.value);
     const id = parseMeasurement(els.id.value);
-    const thicknessRaw = parseMeasurement(els.thickness.value);
-    const thicknessInches = getThicknessInches(els.thickness.value);
-    const inches = calcLengthInches(od, id, thicknessInches);
+    const thickness = parseMeasurement(els.thickness.value);
+    const inches = calcLengthInches(od, id, thickness);
     const feet = inches / 12;
-    return { od, id, thicknessRaw, thicknessInches, inches, feet };
+    return { od, id, thickness, inches, feet };
   }
 
   function showSaveNote(text) {
@@ -79,22 +67,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateCaptureNote() {
     if (document.activeElement === els.od) {
-      els.captureNote.textContent = 'Ready for OD. Press the caliper button and it will move to ID.';
+      els.captureNote.textContent = 'OD is armed. The next caliper input will replace this value.';
     } else if (document.activeElement === els.id) {
-      els.captureNote.textContent = 'Ready for ID. Press the caliper button and it will move to Thickness.';
+      els.captureNote.textContent = 'ID is armed. The next caliper input will replace this value.';
     } else if (document.activeElement === els.thickness) {
-      els.captureNote.textContent = 'Ready for Thickness. After capture, the app will stay on the last field.';
+      els.captureNote.textContent = 'Thickness is armed. The next caliper input will replace this value.';
     } else {
-      els.captureNote.textContent = 'Tap OD first. When the caliper types a value, the app will jump to the next field automatically.';
+      els.captureNote.textContent = 'Tap a field and the next caliper input will replace the current value.';
     }
+  }
+
+  function armReplaceOnFocus(el) {
+    el.addEventListener('focus', () => {
+      setCaptureHighlight(el);
+      updateCaptureNote();
+      setTimeout(() => { if (el.select) el.select(); }, 0);
+    });
+
+    el.addEventListener('pointerdown', () => {
+      setTimeout(() => { if (el.select) el.select(); }, 0);
+    });
+
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        el.blur();
+      }
+    });
+
+    el.addEventListener('input', updateResults);
+    el.addEventListener('change', updateResults);
   }
 
   function updateWarning(values) {
     let msg = '';
     if (values.od && values.id && values.od <= values.id) msg = 'OD must be larger than ID.';
-    else if (values.od || values.id || values.thicknessInches) {
-      if (!values.thicknessInches) msg = 'Enter a valid thickness.';
-      else if (!values.feet) msg = 'Check the values and units.';
+    else if (values.od || values.id || values.thickness) {
+      if (!values.thickness) msg = 'Enter a valid thickness.';
+      else if (!values.feet) msg = 'Check the values.';
     }
     els.warningText.textContent = msg;
   }
@@ -102,9 +112,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function updateResults() {
     const values = currentValues();
     els.feetResult.textContent = `${values.feet.toFixed(2)} ft`;
-    els.formulaNote.textContent = thicknessMode === 'mil'
-      ? 'OD and ID are inches. Thickness is entered in mil and converted automatically.'
-      : 'Using inches for OD, ID, and thickness.';
     updateWarning(values);
   }
 
@@ -141,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="meta">
           <div>OD: ${Number(roll.od).toFixed(3)} in</div>
           <div>ID: ${Number(roll.id).toFixed(3)} in</div>
-          <div>Thickness: ${escapeHtml(roll.thicknessDisplay)}</div>
+          <div>Thickness: ${Number(roll.thickness).toFixed(4)} in</div>
         </div>
         <div style="margin-top:10px;">
           <button class="ghost tiny" type="button" data-delete="${roll.createdAt}">Delete</button>
@@ -163,7 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function saveCurrentRoll() {
     const values = currentValues();
     const rollName = els.rollName.value.trim();
-    const rollDate = (els.rollDate.value || todayLocalDate()).trim();
+    const rollDate = els.rollDate.value || todayLocalDate();
 
     if (!rollName) {
       els.warningText.textContent = 'Enter a roll name.';
@@ -175,22 +182,15 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const thicknessDisplay = thicknessMode === 'mil'
-      ? `${values.thicknessRaw.toFixed(3)} mil`
-      : `${values.thicknessInches.toFixed(4)} in`;
-
     const rolls = loadRolls();
     rolls.push({
       rollName,
       rollDate,
       od: values.od,
       id: values.id,
-      thicknessRaw: values.thicknessRaw,
-      thicknessInches: values.thicknessInches,
-      thicknessDisplay,
+      thickness: values.thickness,
       inches: values.inches,
       feet: values.feet,
-      thicknessMode,
       createdAt: new Date().toISOString()
     });
     saveRolls(rolls);
@@ -206,13 +206,12 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    const headers = ['Roll Name', 'Date', 'OD (in)', 'ID (in)', 'Thickness Entered', 'Thickness (in)', 'Length (in)', 'Length (ft)'];
+    const headers = ['Roll Name', 'Date', 'OD (in)', 'ID (in)', 'Thickness (in)', 'Length (in)', 'Length (ft)'];
     const rows = rolls.map(r => [
       r.rollName, r.rollDate,
       Number(r.od).toFixed(3),
       Number(r.id).toFixed(3),
-      r.thicknessDisplay,
-      Number(r.thicknessInches).toFixed(4),
+      Number(r.thickness).toFixed(4),
       Number(r.inches).toFixed(2),
       Number(r.feet).toFixed(2)
     ]);
@@ -259,45 +258,13 @@ document.addEventListener('DOMContentLoaded', () => {
     showSaveNote('Open in Safari, then Share → Add to Home Screen');
   }
 
-  function setThicknessMode(mode) {
-    thicknessMode = mode;
-    els.inchModeBtn.classList.toggle('active', mode === 'inch');
-    els.milModeBtn.classList.toggle('active', mode === 'mil');
-    els.thickness.placeholder = mode === 'mil' ? 'Example: 3.0' : 'Example: 0.003';
-    updateResults();
-  }
-
-  [els.od, els.id, els.thickness].forEach(el => {
-    el.addEventListener('input', () => {
-      updateResults();
-      scheduleAutoAdvance(el);
-    });
-    el.addEventListener('change', updateResults);
-    el.addEventListener('focus', () => {
-      setCaptureHighlight(el);
-      updateCaptureNote();
-    });
-    el.addEventListener('blur', () => {
-      setTimeout(() => {
-        const active = document.activeElement;
-        if (![els.od, els.id, els.thickness].includes(active)) {
-          setCaptureHighlight(null);
-          updateCaptureNote();
-        }
-      }, 0);
-    });
-    el.addEventListener('keydown', e => {
-      if (e.key === 'Enter' || e.key === 'Tab') moveToNextField(el);
-    });
-  });
+  [els.od, els.id, els.thickness].forEach(armReplaceOnFocus);
 
   els.saveBtn.addEventListener('click', saveCurrentRoll);
   els.exportBtn.addEventListener('click', exportCSV);
   els.clearBtn.addEventListener('click', clearInputs);
   els.installBtn.addEventListener('click', showInstallHelp);
   els.clearHistoryBtn.addEventListener('click', clearAllHistory);
-  els.inchModeBtn.addEventListener('click', () => setThicknessMode('inch'));
-  els.milModeBtn.addEventListener('click', () => setThicknessMode('mil'));
   els.chipOd.addEventListener('click', () => els.od.focus());
   els.chipId.addEventListener('click', () => els.id.focus());
   els.chipThickness.addEventListener('click', () => els.thickness.focus());
