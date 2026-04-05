@@ -89,29 +89,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  function moveToNextField(current) {
-    if (current === els.od) {
-      els.id.focus();
-      els.id.select?.();
-    } else if (current === els.id) {
-      els.thickness.focus();
-      els.thickness.select?.();
-    } else {
-      current.blur();
-      setCaptureHighlight(null);
-    }
-    updateCaptureNote();
-  }
-
-  function scheduleAutoAdvance(field) {
-    clearTimeout(autoAdvanceTimer);
-    autoAdvanceTimer = setTimeout(() => {
-      const raw = String(field.value || '').trim();
-      const parsed = parseMeasurement(raw);
-      if (raw && parsed > 0 && document.activeElement === field) moveToNextField(field);
-    }, 220);
-  }
-
   function updateWarning(values) {
     let msg = '';
     if (values.od && values.id && values.od <= values.id) msg = 'OD must be larger than ID.';
